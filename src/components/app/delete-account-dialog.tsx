@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { deleteAccountAction } from "@/lib/actions/account";
+import { playSound } from "@/lib/sound";
 
 const CONFIRM_WORD = "DELETE";
 
@@ -26,12 +27,14 @@ export function DeleteAccountDialog() {
   const [isPending, startTransition] = useTransition();
 
   function handleDelete() {
+    playSound("delete");
     startTransition(async () => {
       const result = await deleteAccountAction();
       if (result?.error) {
         toast.error("Couldn't delete your account", {
           description: result.error,
         });
+        playSound("error");
       }
       // On success the action redirects, so there's nothing else to do here.
     });

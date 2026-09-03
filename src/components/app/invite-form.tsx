@@ -5,13 +5,20 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { inviteViewerAction } from "@/lib/actions/sharing";
+import { playSound } from "@/lib/sound";
 
 export function InviteForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState(inviteViewerAction, null);
 
   useEffect(() => {
-    if (state?.success) formRef.current?.reset();
+    if (!state) return;
+    if (state.success) {
+      formRef.current?.reset();
+      playSound("success");
+    } else if (state.error) {
+      playSound("error");
+    }
   }, [state]);
 
   return (

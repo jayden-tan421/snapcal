@@ -1,13 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateGoalAction } from "@/lib/actions/settings";
+import { playSound } from "@/lib/sound";
 
 export function GoalForm({ initialGoal }: { initialGoal: number }) {
   const [state, formAction, pending] = useActionState(updateGoalAction, null);
+
+  useEffect(() => {
+    if (!state) return;
+    if ("success" in state && state.success) playSound("success");
+    else if ("error" in state && state.error) playSound("error");
+  }, [state]);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">

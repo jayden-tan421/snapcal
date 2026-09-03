@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { compressImage } from "@/lib/image-compress";
 import { saveMealAction } from "@/lib/actions/meals";
+import { playSound } from "@/lib/sound";
 import type { Confidence, MealItem } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +72,7 @@ export function LogMealSheet({
   /** Falls back to a pre-filled manual-entry stage with a toast + persistent banner explaining why. */
   function fallBackToManual(title: string, description?: string) {
     toast.error(title, description ? { description } : undefined);
+    playSound("error");
     setAnalysisError({ title, description });
     setItems([emptyItem()]);
     setSource("manual");
@@ -89,6 +91,7 @@ export function LogMealSheet({
       toast.error("Couldn't process that photo", {
         description: "Try a different photo, or enter this meal manually.",
       });
+      playSound("error");
       setStage("choose");
       return;
     }
@@ -190,6 +193,7 @@ export function LogMealSheet({
     const cleanItems = items.filter((item) => item.name.trim() !== "");
     if (cleanItems.length === 0) {
       toast.error("Add at least one food item first.");
+      playSound("error");
       return;
     }
 
@@ -207,10 +211,12 @@ export function LogMealSheet({
 
       if (result.error) {
         toast.error("Couldn't save that meal", { description: result.error });
+        playSound("error");
         return;
       }
 
       toast.success("Meal logged!");
+      playSound("success");
       handleOpenChange(false);
       router.refresh();
     });

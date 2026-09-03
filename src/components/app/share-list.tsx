@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, Eye, UserX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { playSound } from "@/lib/sound";
 import type { ShareRow } from "@/lib/supabase/sharing-queries";
 import {
   leaveShareAction,
@@ -35,8 +36,10 @@ export function ShareList({
       const result = await action();
       if (result?.error) {
         toast.error(result.error);
+        playSound("error");
         return;
       }
+      playSound("success");
       router.refresh();
     });
   }

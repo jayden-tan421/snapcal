@@ -5,6 +5,7 @@ import { Users } from "lucide-react";
 import { getCurrentUser, getProfile } from "@/lib/supabase/queries";
 import { GoalForm } from "@/components/app/goal-form";
 import { DeleteAccountDialog } from "@/components/app/delete-account-dialog";
+import { SoundToggle } from "@/components/app/sound-toggle";
 
 export const metadata: Metadata = { title: "Settings — SnapCal" };
 
@@ -55,6 +56,8 @@ export default async function SettingsPage() {
           </span>
         </span>
       </Link>
+
+      <SoundToggle />
 
       <DeleteAccountDialog />
     </div>

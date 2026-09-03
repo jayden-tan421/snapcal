@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AuthState } from "@/lib/actions/auth";
+import { playSound } from "@/lib/sound";
 
 export function AuthForm({
   mode,
@@ -18,6 +19,16 @@ export function AuthForm({
     action,
     null
   );
+
+  useEffect(() => {
+    if (!state) return;
+    // A successful login/signup redirects away before state ever updates,
+    // so anything we see here is either an error or the signup
+    // check-your-email message — both worth a sound, one negative and one
+    // positive.
+    if (state.error) playSound("error");
+    else if (state.message) playSound("success");
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-5">
