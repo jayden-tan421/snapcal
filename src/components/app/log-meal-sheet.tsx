@@ -59,52 +59,92 @@ export function LogMealSheet({
     onOpenChange(next);
   }
 
+  /** Falls back to a pre-filled manual-entry stage with a toast explaining why. */
+  function fallBackToManual(title: string, description?: string) {
+    toast.error(title, description ? { description } : undefined);
+    setItems([emptyItem()]);
+    setSource("manual");
+    setConfidence(null);
+    setStage("manual");
+  }
+
   async function handleFileSelected(file: File) {
     setStage("compressing");
-    try {
-      const compressed = await compressImage(file);
-      setStage("analyzing");
 
+    let compressed: File;
+    try {
+      compressed = await compressImage(file);
+    } catch {
+      toast.error("Couldn't process that photo", {
+        description: "Try a different photo, or enter this meal manually.",
+      });
+      setStage("choose");
+      return;
+    }
+
+    setStage("analyzing");
+
+    let res: Response;
+    try {
       const formData = new FormData();
       formData.append("image", compressed);
-
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData,
-      });
-      const body = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 429) {
-          toast.error("Daily AI limit reached", {
-            description: "Try again tomorrow, or enter this meal manually.",
-          });
-        } else if (res.status === 422) {
-          toast.error("Couldn't read that photo", {
-            description: "Try a clearer shot, or enter it manually.",
-          });
-        } else {
-          toast.error("Analysis failed", { description: body.message });
-        }
-        setItems([emptyItem()]);
-        setSource("manual");
-        setConfidence(null);
-        setStage("manual");
-        return;
-      }
-
-      const analysis = body.analysis as {
-        items: MealItem[];
-        confidence: Confidence;
-      };
-      setItems(analysis.items.length ? analysis.items : [emptyItem()]);
-      setConfidence(analysis.confidence);
-      setSource("ai");
-      setStage("review");
+      res = await fetch("/api/analyze", { method: "POST", body: formData });
     } catch {
-      toast.error("Something went wrong compressing that photo.");
-      setStage("choose");
+      // Network-level failure — fetch itself never completed.
+      fallBackToManual(
+        "Couldn't reach the server",
+        "Check your connection and try again, or enter this meal manually."
+      );
+      return;
     }
+
+    // The route always returns JSON, but a platform-level failure (e.g. a
+    // proxy/timeout error page) could return something else — never let
+    // that throw silently past the user without any explanation.
+    let body: { analysis?: { items: MealItem[]; confidence: Confidence }; message?: string };
+    try {
+      body = await res.json();
+    } catch {
+      fallBackToManual(
+        "Analysis failed",
+        `Unexpected response from the server (${res.status}). Try again, or enter this meal manually.`
+      );
+      return;
+    }
+
+    if (!res.ok) {
+      if (res.status === 429) {
+        fallBackToManual(
+          "Daily AI limit reached",
+          "Try again tomorrow, or enter this meal manually."
+        );
+      } else if (res.status === 422) {
+        fallBackToManual(
+          "Couldn't read that photo",
+          "Try a clearer shot, or enter it manually."
+        );
+      } else {
+        fallBackToManual(
+          "Analysis failed",
+          body.message ?? "Try again, or enter this meal manually."
+        );
+      }
+      return;
+    }
+
+    if (!body.analysis) {
+      fallBackToManual(
+        "Analysis failed",
+        "Try again, or enter this meal manually."
+      );
+      return;
+    }
+
+    const analysis = body.analysis;
+    setItems(analysis.items.length ? analysis.items : [emptyItem()]);
+    setConfidence(analysis.confidence);
+    setSource("ai");
+    setStage("review");
   }
 
   function startManual() {

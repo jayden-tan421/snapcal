@@ -4,6 +4,12 @@ import { getGeminiClient, GEMINI_MODEL } from "@/lib/gemini/client";
 import { MEAL_ANALYSIS_PROMPT, parseMealAnalysis } from "@/lib/gemini/prompt";
 
 export const runtime = "nodejs";
+// Vercel's default serverless function timeout is 10s on the Hobby plan —
+// well under the 20s ceiling we give the Gemini call below. Without this,
+// a slow-but-otherwise-fine analysis gets killed by the platform itself,
+// which returns a raw (non-JSON) timeout page instead of our own error
+// response.
+export const maxDuration = 60;
 
 // Meal photos are compressed client-side to ~800px/JPEG70, so this is a
 // generous ceiling that still blocks anything abusive.

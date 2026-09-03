@@ -10,9 +10,20 @@ import type { Meal } from "@/lib/supabase/queries";
 export function MealList({
   meals,
   readOnly = false,
+  timeZone = "UTC",
 }: {
   meals: Meal[];
   readOnly?: boolean;
+  /**
+   * Must be passed explicitly (from the same cookie-resolved timezone used
+   * for day-boundary math) rather than left to the runtime's local zone.
+   * This component server-renders for the initial HTML and then hydrates
+   * client-side; if `toLocaleTimeString` relied on the runtime's implicit
+   * timezone, the server (UTC on Vercel) and the visitor's browser would
+   * format the same timestamp differently, causing a React hydration
+   * mismatch (and visibly wrong times) for any non-UTC visitor.
+   */
+  timeZone?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -46,6 +57,7 @@ export function MealList({
         const time = new Date(meal.created_at).toLocaleTimeString([], {
           hour: "numeric",
           minute: "2-digit",
+          timeZone,
         });
 
         return (

@@ -86,7 +86,7 @@ export default async function SharedLogPage({
         carbs_g={totals.carbs_g}
         fat_g={totals.fat_g}
       />
-      <MealList meals={meals} readOnly />
+      <MealList meals={meals} timeZone={timeZone} readOnly />
     </div>
   );
 }

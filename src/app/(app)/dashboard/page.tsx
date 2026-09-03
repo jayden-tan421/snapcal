@@ -42,7 +42,7 @@ export default async function DashboardPage() {
         carbs_g={totals.carbs_g}
         fat_g={totals.fat_g}
       />
-      <MealList meals={meals} />
+      <MealList meals={meals} timeZone={timeZone} />
     </div>
   );
 }

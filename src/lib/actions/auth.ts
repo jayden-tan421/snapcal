@@ -1,9 +1,30 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthState = { error?: string; message?: string } | null;
+
+/**
+ * Builds the origin (protocol + host) the current request actually came
+ * in on. Used for the signup confirmation email's redirect link, so it
+ * points at whichever deployment sent it — localhost in dev, the real
+ * domain in production — rather than whatever "Site URL" happens to be
+ * configured in the Supabase dashboard (which defaults to localhost and
+ * is easy to forget to update after deploying).
+ *
+ * NOTE: the target URL still has to be added to Supabase's Authentication
+ * → URL Configuration → Redirect URLs allow-list, or Supabase will reject
+ * it and fall back to the dashboard's Site URL regardless of what we pass
+ * here — this only controls what link we *ask* Supabase to use.
+ */
+async function currentOrigin() {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
+}
 
 function friendlyError(message: string) {
   if (/invalid login credentials/i.test(message)) {
@@ -54,7 +75,12 @@ export async function signUpAction(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const origin = await currentOrigin();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${origin}/auth/confirm` },
+  });
 
   if (error) {
     return { error: friendlyError(error.message) };

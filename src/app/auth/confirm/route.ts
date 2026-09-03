@@ -4,10 +4,12 @@ import { type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Handles the link Supabase emails for signup confirmation / magic links
- * (Authentication → URL Configuration → Site URL must point back here,
- * e.g. http://localhost:3000 in dev). Exchanges the OTP token for a
- * session, then sends the user into the app.
+ * Handles the link Supabase emails for signup confirmation / magic links.
+ * signUpAction() passes `emailRedirectTo` pointing back here using the
+ * actual request origin, but Supabase will only honor it if that origin is
+ * also listed in Authentication → URL Configuration → Redirect URLs
+ * (otherwise it silently falls back to the dashboard's Site URL). Exchanges
+ * the OTP token for a session, then sends the user into the app.
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
