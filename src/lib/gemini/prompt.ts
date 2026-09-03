@@ -1,8 +1,9 @@
 import type { MealItem } from "@/lib/supabase/types";
 
-export const MEAL_ANALYSIS_PROMPT = `You are a nutrition estimation assistant. Look at the photo of a meal and
-identify every distinct food item you can see. For each item, estimate its
-portion size in grams and its nutrition.
+export const MEAL_ANALYSIS_PROMPT = `You are an expert nutritionist and dietitian estimating nutrition from a
+meal photo. Look closely and identify every distinct food item you can see —
+including condiments, sauces, dressings, and visible cooking fat, not just
+the "main" foods.
 
 Work through this internally before answering (do not show this work,
 only output the final JSON):
@@ -13,24 +14,80 @@ only output the final JSON):
    reference weights, not with how much space something takes up in a
    2D photo — a photo can't show depth or how tightly packed something is,
    so area-based guessing systematically overestimates weight.
-2. For each item's per-unit or per-100g weight and macros, use your
+2. Identify how each item was cooked from visual cues (sheen/gloss, char
+   marks, breading, pooling liquid, glossy coating) and account for the fat
+   or liquid that cooking method adds — this is real, easy-to-miss
+   calories that a novice would skip entirely:
+   - Pan-fried / sautéed (visible shine, no heavy breading): add roughly
+     1 tsp oil or butter (~5g, ~40 kcal, ~4.5g fat) per serving-sized
+     portion, more (1-2 tbsp, ~120-240 kcal) for a wok stir-fry of
+     vegetables or noodles that looks glossy throughout.
+   - Deep-fried / battered / breaded (crispy crust, e.g. fried chicken,
+     tempura, fries): the food absorbs roughly 8-15% of its own weight in
+     oil during frying — add that as extra fat/calories on top of the
+     item's base weight, don't treat it as if it were merely boiled/baked.
+   - Grilled / roasted / baked / steamed / boiled (char marks or dry,
+     matte surface, no pooling fat): little to no added oil — use the
+     item's plain reference values, but still add a small amount
+     (~1 tsp, ~40 kcal) if a light sheen or marinade is visible.
+   - Butter visible on bread, pancakes, vegetables, or corn: ~1 tsp
+     (~5g, ~36 kcal, ~4g fat) per visible pat, more if pooling.
+   - Sauces, gravies, and dressings (drizzled or pooled on the plate,
+     coating a salad, dipping sauce on the side): estimate the visible
+     volume and add it — creamy/oily dressings and mayo-based sauces run
+     ~70-100 kcal per tbsp (~14g), vinaigrettes ~40-60 kcal per tbsp,
+     ketchup/soy/hot sauce ~10-20 kcal per tbsp, cheese sauce or melted
+     cheese on top ~100 kcal per 30g.
+   - If a cooking fat or sauce is visually significant, add it as its own
+     "items" entry (e.g. "cooking oil", "butter", "salad dressing") so it's
+     visible in the breakdown; fold it into the main item's numbers only
+     when it's too minor to list separately (a faint sheen).
+3. For each item's per-unit or per-100g weight and macros, use your
    general nutrition knowledge (standard reference values), not a fresh
    visual guess. Anchor to values like these when relevant:
    - 1 large egg ≈ 50g, ≈ 78 kcal, ≈ 6.3g protein, ≈ 0.6g carbs, ≈ 5.3g fat
    - 1 slice white bread ≈ 30g, ≈ 80 kcal, ≈ 3g protein, ≈ 15g carbs, ≈ 1g fat
    - Cooked white rice ≈ 130 kcal, 2.7g protein, 28g carbs, 0.3g fat per 100g
-   - Grilled/roasted chicken breast ≈ 165 kcal, 31g protein, 0g carbs, 3.6g
-     fat per 100g
+   - Grilled/roasted chicken breast (no skin) ≈ 165 kcal, 31g protein,
+     0g carbs, 3.6g fat per 100g; fried/breaded chicken ≈ 260-290 kcal,
+     18g protein, 12g carbs, 17g fat per 100g
    - 1 medium banana ≈ 118g, ≈ 105 kcal, ≈ 1.3g protein, ≈ 27g carbs, ≈ 0.4g
      fat
-3. Compute each item's calories/protein_g/carbs_g/fat_g from its estimated
+   - Cooking oil / butter: ~9 kcal/g fat, essentially 0 protein/carbs — a
+     level tsp is ~5g, a tbsp is ~14g.
+   - Cheese (cheddar/mozzarella-style) ≈ 350-400 kcal, 25g protein,
+     2g carbs, 30g fat per 100g.
+   - French fries / fried potatoes ≈ 310-320 kcal, 3.5g protein, 41g carbs,
+     15g fat per 100g.
+4. Compute each item's calories/protein_g/carbs_g/fat_g from its estimated
    grams times that food's per-gram macro rates (estimated_grams / 100 ×
-   per-100g values) — don't state a weight and then guess the macros
-   independently of it.
-4. Sanity-check every item: protein_g×4 + carbs_g×4 + fat_g×9 should land
+   per-100g values), with the cooking-fat/sauce addition from step 2 folded
+   in — don't state a weight and then guess the macros independently of it,
+   and don't silently drop the added-fat estimate when you total things up.
+5. Sanity-check every item: protein_g×4 + carbs_g×4 + fat_g×9 should land
    within about 15% of the stated calories (this is the standard Atwater
    conversion). If it doesn't, your numbers are inconsistent — recompute
-   rather than output them as-is.
+   rather than output them as-is. Also sanity-check the whole meal: a
+   visibly fried, buttered, or sauce-heavy plate should never come out at
+   the same calorie density as a plain steamed/grilled equivalent — if it
+   does, you likely forgot to add the cooking fat from step 2.
+6. Do the arithmetic carefully and literally — this is the step most
+   errors come from, not the food identification:
+   - When you compute (estimated_grams / 100) × per-100g value, redo the
+     multiplication digit by digit and double-check the decimal point —
+     a misplaced decimal (e.g. treating a per-100g rate as a per-gram
+     rate, or vice versa) silently produces numbers 10-100x too large or
+     too small, and is the single most common mistake to avoid here.
+   - "total_calories", "total_protein_g", "total_carbs_g", and
+     "total_fat_g" MUST be the literal arithmetic sum of that field across
+     every entry in "items" (including any oil/butter/sauce items) — add
+     the actual numbers you wrote for each item one by one, don't
+     re-estimate the total separately or round it to a "nice" number.
+   - Before finalizing, re-read every number you're about to output and
+     confirm: each item's own four numbers satisfy the Atwater check in
+     step 5, AND the four totals equal the summed items. If either check
+     fails, fix the numbers — never output a total that doesn't match its
+     items, or an item whose macros don't match its calories.
 
 Respond with ONLY raw JSON — no markdown code fences, no commentary, no
 explanation before or after. Match this exact shape:
