@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fredoka, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -18,6 +18,15 @@ export const metadata: Metadata = {
   title: "SnapCal — snap a photo, know your calories",
   description:
     "SnapCal is the free calorie tracker that reads your meal photos with AI so you never have to search a food database again.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SnapCal",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#9fce39",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
