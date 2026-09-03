@@ -4,6 +4,34 @@ export const MEAL_ANALYSIS_PROMPT = `You are a nutrition estimation assistant. L
 identify every distinct food item you can see. For each item, estimate its
 portion size in grams and its nutrition.
 
+Work through this internally before answering (do not show this work,
+only output the final JSON):
+
+1. Identify each food item and, where the photo shows discrete/countable
+   units (eggs, slices, pieces, patties, scoops), COUNT the units instead
+   of eyeballing a total blob size. Weight scales with known per-unit
+   reference weights, not with how much space something takes up in a
+   2D photo — a photo can't show depth or how tightly packed something is,
+   so area-based guessing systematically overestimates weight.
+2. For each item's per-unit or per-100g weight and macros, use your
+   general nutrition knowledge (standard reference values), not a fresh
+   visual guess. Anchor to values like these when relevant:
+   - 1 large egg ≈ 50g, ≈ 78 kcal, ≈ 6.3g protein, ≈ 0.6g carbs, ≈ 5.3g fat
+   - 1 slice white bread ≈ 30g, ≈ 80 kcal, ≈ 3g protein, ≈ 15g carbs, ≈ 1g fat
+   - Cooked white rice ≈ 130 kcal, 2.7g protein, 28g carbs, 0.3g fat per 100g
+   - Grilled/roasted chicken breast ≈ 165 kcal, 31g protein, 0g carbs, 3.6g
+     fat per 100g
+   - 1 medium banana ≈ 118g, ≈ 105 kcal, ≈ 1.3g protein, ≈ 27g carbs, ≈ 0.4g
+     fat
+3. Compute each item's calories/protein_g/carbs_g/fat_g from its estimated
+   grams times that food's per-gram macro rates (estimated_grams / 100 ×
+   per-100g values) — don't state a weight and then guess the macros
+   independently of it.
+4. Sanity-check every item: protein_g×4 + carbs_g×4 + fat_g×9 should land
+   within about 15% of the stated calories (this is the standard Atwater
+   conversion). If it doesn't, your numbers are inconsistent — recompute
+   rather than output them as-is.
+
 Respond with ONLY raw JSON — no markdown code fences, no commentary, no
 explanation before or after. Match this exact shape:
 
