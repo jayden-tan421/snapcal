@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import {
-  endOfTodayIso,
-  getCurrentUser,
-  getMeals,
-  getProfile,
-  startOfTodayIso,
-} from "@/lib/supabase/queries";
+import { cookies } from "next/headers";
+import { getCurrentUser, getMeals, getProfile, todayRange } from "@/lib/supabase/queries";
+import { resolveTimezone } from "@/lib/timezone";
 import { CalorieHero } from "@/components/app/calorie-hero";
 import { MacroRow } from "@/components/app/macro-row";
 import { MealList } from "@/components/app/meal-list";
@@ -17,9 +13,12 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  const timeZone = resolveTimezone((await cookies()).get("tz")?.value);
+  const { startIso, endIso } = todayRange(timeZone);
+
   const [profile, meals] = await Promise.all([
     getProfile(user.id),
-    getMeals(user.id, startOfTodayIso(), endOfTodayIso()),
+    getMeals(user.id, startIso, endIso),
   ]);
 
   const totals = meals.reduce(

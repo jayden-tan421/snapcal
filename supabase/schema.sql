@@ -152,14 +152,21 @@ create policy "log_access: owner creates invite"
   on public.log_access for insert
   with check (owner_id = auth.uid());
 
--- Owner can update (e.g. revoke) their own invites; viewer can update (e.g.
--- accept/decline) invites addressed to them. Application logic is
--- responsible for only setting the transitions that make sense per role.
+-- Only the viewer can UPDATE, and only to flip pending -> accepted/declined
+-- (or toggle between the two later). The app never has the owner update a
+-- row directly — revoking is a DELETE (below) — so ownership grants no
+-- UPDATE at all here. This closes a real gap the previous, looser policy
+-- had: without this, an owner could call the Supabase client directly
+-- (bypassing the app's UI, which never exposes this) and set status =
+-- 'accepted' on their own outgoing invite themselves, silently granting
+-- the invited viewer access without that viewer's actual consent — the
+-- opposite of "explicit accept/decline on the invitee's side".
 drop policy if exists "log_access: owner or viewer updates" on public.log_access;
-create policy "log_access: owner or viewer updates"
+drop policy if exists "log_access: viewer accepts or declines" on public.log_access;
+create policy "log_access: viewer accepts or declines"
   on public.log_access for update
-  using (owner_id = auth.uid() or viewer_id = auth.uid())
-  with check (owner_id = auth.uid() or viewer_id = auth.uid());
+  using (viewer_id = auth.uid())
+  with check (viewer_id = auth.uid() and status in ('accepted', 'declined'));
 
 drop policy if exists "log_access: owner deletes invite" on public.log_access;
 create policy "log_access: owner deletes invite"
@@ -180,6 +187,26 @@ drop trigger if exists log_access_set_updated_at on public.log_access;
 create trigger log_access_set_updated_at
   before update on public.log_access
   for each row execute function public.set_updated_at();
+
+-- Belt-and-suspenders: even though the UPDATE policy above only lets the
+-- viewer through, explicitly forbid owner_id/viewer_id ever changing via
+-- UPDATE (RLS's WITH CHECK alone can't compare against the OLD row).
+create or replace function public.lock_log_access_identity()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.owner_id <> old.owner_id or new.viewer_id <> old.viewer_id then
+    raise exception 'owner_id and viewer_id cannot be changed';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists log_access_lock_identity on public.log_access;
+create trigger log_access_lock_identity
+  before update on public.log_access
+  for each row execute function public.lock_log_access_identity();
 
 -- ----------------------------------------------------------------------------
 -- find_user_id_by_email: lets a logged-in user resolve another registered

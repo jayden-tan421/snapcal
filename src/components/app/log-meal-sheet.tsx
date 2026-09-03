@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, Loader2, Pencil, Plus, X } from "lucide-react";
+import { Camera, ImageUp, Loader2, Pencil, Plus, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -38,7 +38,8 @@ export function LogMealSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const [stage, setStage] = useState<Stage>("choose");
   const [items, setItems] = useState<MealItem[]>([]);
   const [confidence, setConfidence] = useState<Confidence | null>(null);
@@ -182,7 +183,7 @@ export function LogMealSheet({
         {stage === "choose" && (
           <div className="mt-2 flex flex-col gap-3">
             <input
-              ref={fileInputRef}
+              ref={cameraInputRef}
               type="file"
               accept="image/*"
               capture="environment"
@@ -193,9 +194,20 @@ export function LogMealSheet({
                 e.target.value = "";
               }}
             />
+            <input
+              ref={uploadInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileSelected(file);
+                e.target.value = "";
+              }}
+            />
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => cameraInputRef.current?.click()}
               className="flex items-center gap-4 rounded-2xl bg-element px-5 py-4 text-left text-ink shadow-[0_3px_0_0_rgba(0,0,0,0.15)] active:translate-y-0.5"
             >
               <span className="flex size-11 items-center justify-center rounded-full bg-ink/15">
@@ -207,6 +219,24 @@ export function LogMealSheet({
                 </span>
                 <span className="block text-sm text-ink/80">
                   Let AI estimate calories and macros
+                </span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => uploadInputRef.current?.click()}
+              className="flex items-center gap-4 rounded-2xl bg-secondary px-5 py-4 text-left text-ink-strong active:translate-y-0.5"
+            >
+              <span className="flex size-11 items-center justify-center rounded-full bg-ink-strong/10">
+                <ImageUp className="size-5" />
+              </span>
+              <span>
+                <span className="block font-display text-base font-semibold">
+                  Upload a photo
+                </span>
+                <span className="block text-sm text-ink-strong/70">
+                  Pick one from your library
                 </span>
               </span>
             </button>

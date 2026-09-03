@@ -6,6 +6,7 @@ import { LogOut } from "lucide-react";
 import { Logo } from "@/components/marketing/logo";
 import { BottomNav } from "@/components/app/bottom-nav";
 import { LogMealSheet } from "@/components/app/log-meal-sheet";
+import { TimezoneSync } from "@/components/app/timezone-sync";
 import { signOutAction } from "@/lib/actions/auth";
 
 export function AppShell({
@@ -19,6 +20,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-full flex-col bg-canvas">
+      <TimezoneSync />
       <header className="sticky top-0 z-30 border-b border-ink-strong/10 bg-canvas/90 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-5">
           <Link href="/dashboard">

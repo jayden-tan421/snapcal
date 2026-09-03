@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { ArrowLeft } from "lucide-react";
-import {
-  endOfTodayIso,
-  getCurrentUser,
-  getMeals,
-  getProfile,
-  startOfTodayIso,
-} from "@/lib/supabase/queries";
+import { getCurrentUser, getMeals, getProfile, todayRange } from "@/lib/supabase/queries";
+import { resolveTimezone } from "@/lib/timezone";
 import { CalorieHero } from "@/components/app/calorie-hero";
 import { MacroRow } from "@/components/app/macro-row";
 import { MealList } from "@/components/app/meal-list";
@@ -24,6 +20,8 @@ export default async function SharedLogPage({
   if (!user) redirect("/login");
 
   const { ownerId } = await params;
+  const timeZone = resolveTimezone((await cookies()).get("tz")?.value);
+  const { startIso, endIso } = todayRange(timeZone);
 
   // RLS enforces the real permission check: getProfile/getMeals only
   // return rows for ownerId if log_access has an accepted row for this
@@ -31,7 +29,7 @@ export default async function SharedLogPage({
   // access hasn't been granted (or was revoked).
   const [profile, meals] = await Promise.all([
     getProfile(ownerId),
-    getMeals(ownerId, startOfTodayIso(), endOfTodayIso()),
+    getMeals(ownerId, startIso, endIso),
   ]);
 
   if (!profile) {

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { MealItem } from "@/lib/supabase/types";
+import { localDayRangeIso } from "@/lib/timezone";
 
 export interface Meal {
   id: string;
@@ -66,14 +67,12 @@ export async function getMeals(
   return data ?? [];
 }
 
-export function startOfTodayIso() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-}
-
-export function endOfTodayIso() {
-  const d = new Date();
-  d.setHours(23, 59, 59, 999);
-  return d.toISOString();
+/**
+ * [startIso, endIso) for "today" in the visitor's local timezone (not the
+ * server's — Vercel runs in UTC, which would silently misalign "today"
+ * for almost every visitor otherwise). Pass the `tz` cookie value, read
+ * server-side via `resolveTimezone(cookieStore.get("tz")?.value)`.
+ */
+export function todayRange(timeZone: string) {
+  return localDayRangeIso(new Date(), timeZone);
 }
