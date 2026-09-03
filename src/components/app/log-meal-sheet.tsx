@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, ImageUp, Loader2, Pencil, Plus, X } from "lucide-react";
+import { AlertTriangle, Camera, ImageUp, Loader2, Pencil, Plus, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -46,12 +46,21 @@ export function LogMealSheet({
   const [source, setSource] = useState<"ai" | "manual">("manual");
   const [notes, setNotes] = useState("");
   const [isSaving, startSaving] = useTransition();
+  // Shown as a persistent banner (not just a toast) when AI analysis fails
+  // and we fall back to manual entry — a toast alone was easy to miss since
+  // it auto-dismisses in a few seconds right as the sheet is also visually
+  // transitioning to the manual-entry stage.
+  const [analysisError, setAnalysisError] = useState<{
+    title: string;
+    description?: string;
+  } | null>(null);
 
   function reset() {
     setStage("choose");
     setItems([]);
     setConfidence(null);
     setNotes("");
+    setAnalysisError(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -59,9 +68,10 @@ export function LogMealSheet({
     onOpenChange(next);
   }
 
-  /** Falls back to a pre-filled manual-entry stage with a toast explaining why. */
+  /** Falls back to a pre-filled manual-entry stage with a toast + persistent banner explaining why. */
   function fallBackToManual(title: string, description?: string) {
     toast.error(title, description ? { description } : undefined);
+    setAnalysisError({ title, description });
     setItems([emptyItem()]);
     setSource("manual");
     setConfidence(null);
@@ -69,6 +79,7 @@ export function LogMealSheet({
   }
 
   async function handleFileSelected(file: File) {
+    setAnalysisError(null);
     setStage("compressing");
 
     let compressed: File;
@@ -148,6 +159,7 @@ export function LogMealSheet({
   }
 
   function startManual() {
+    setAnalysisError(null);
     setItems([emptyItem()]);
     setSource("manual");
     setConfidence(null);
@@ -314,6 +326,22 @@ export function LogMealSheet({
 
         {(stage === "review" || stage === "manual") && (
           <div className="mt-2 flex flex-col gap-4">
+            {stage === "manual" && analysisError && (
+              <div className="flex items-start gap-2.5 rounded-2xl bg-destructive/10 px-4 py-3">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                <div>
+                  <p className="text-sm font-semibold text-destructive">
+                    {analysisError.title}
+                  </p>
+                  {analysisError.description && (
+                    <p className="mt-0.5 text-sm font-medium text-destructive/80">
+                      {analysisError.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {confidence && (
               <span
                 className={cn(
