@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import type { MealItem } from "@/lib/supabase/types";
 import { localDayRangeIso } from "@/lib/timezone";
@@ -22,13 +23,26 @@ export interface Profile {
   daily_calorie_goal: number;
 }
 
-/** Throws-free: returns null if there's no logged-in user. */
-export async function getCurrentUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+export interface CurrentUser {
+  id: string;
+  email: string;
+}
+
+/**
+ * Reads the already-validated user forwarded by middleware via trusted
+ * request headers (see updateSession in supabase/middleware.ts) instead of
+ * calling supabase.auth.getUser() again here — that would be a second
+ * network round-trip to Supabase's auth server on every single page,
+ * on top of the one middleware already does, roughly doubling the auth
+ * check latency on every navigation.
+ *
+ * Throws-free: returns null if there's no logged-in user.
+ */
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  const h = await headers();
+  const id = h.get("x-user-id");
+  if (!id) return null;
+  return { id, email: h.get("x-user-email") ?? "" };
 }
 
 export async function getProfile(userId: string): Promise<Profile | null> {
