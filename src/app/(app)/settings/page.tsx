@@ -42,7 +42,7 @@ export default async function SettingsPage() {
 
       <SettingsNavLink
         href="/shared"
-        icon={Users}
+        icon={<Users className="size-5" />}
         title="Sharing"
         description="Manage who can view your log"
       />
@@ -50,7 +50,7 @@ export default async function SettingsPage() {
       {profile?.is_admin && (
         <SettingsNavLink
           href="/admin"
-          icon={ShieldCheck}
+          icon={<ShieldCheck className="size-5" />}
           title="Admin"
           description="Manage or delete user accounts"
         />
