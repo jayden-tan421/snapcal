@@ -5,7 +5,7 @@ import { getCurrentUser, getProfile } from "@/lib/supabase/queries";
 import { GoalForm } from "@/components/app/goal-form";
 import { DeleteAccountDialog } from "@/components/app/delete-account-dialog";
 import { SoundToggle } from "@/components/app/sound-toggle";
-import { SettingsNavLink } from "@/components/app/settings-nav-link";
+import { NavCardLink } from "@/components/app/nav-card-link";
 
 export const metadata: Metadata = { title: "Settings — SnapCal" };
 
@@ -40,7 +40,7 @@ export default async function SettingsPage() {
         </div>
       </div>
 
-      <SettingsNavLink
+      <NavCardLink
         href="/shared"
         icon={<Users className="size-5" />}
         title="Sharing"
@@ -48,7 +48,7 @@ export default async function SettingsPage() {
       />
 
       {profile?.is_admin && (
-        <SettingsNavLink
+        <NavCardLink
           href="/admin"
           icon={<ShieldCheck className="size-5" />}
           title="Admin"

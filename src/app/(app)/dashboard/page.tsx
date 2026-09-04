@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { getCurrentUser, getMeals, getProfile, todayRange } from "@/lib/supabase/queries";
+import {
+  getBurnedCaloriesForDate,
+  getCurrentUser,
+  getMeals,
+  getProfile,
+  todayDateKey,
+  todayRange,
+} from "@/lib/supabase/queries";
 import { resolveTimezone } from "@/lib/timezone";
 import { CalorieHero } from "@/components/app/calorie-hero";
 import { MacroRow } from "@/components/app/macro-row";
@@ -15,10 +22,12 @@ export default async function DashboardPage() {
 
   const timeZone = resolveTimezone((await cookies()).get("tz")?.value);
   const { startIso, endIso } = todayRange(timeZone);
+  const today = todayDateKey(timeZone);
 
-  const [profile, meals] = await Promise.all([
+  const [profile, meals, burnedCalories] = await Promise.all([
     getProfile(user.id),
     getMeals(user.id, startIso, endIso),
+    getBurnedCaloriesForDate(user.id, today),
   ]);
 
   const totals = meals.reduce(
@@ -36,6 +45,7 @@ export default async function DashboardPage() {
       <CalorieHero
         consumed={totals.calories}
         goal={profile?.daily_calorie_goal ?? 2000}
+        burned={burnedCalories}
       />
       <MacroRow
         protein_g={totals.protein_g}

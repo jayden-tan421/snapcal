@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { playSound } from "@/lib/sound";
 
-/** A Settings-page nav card (Sharing, Admin, …) — split out as its own
- *  client component just so it can play a tap sound on click, since the
- *  Settings page itself is a Server Component.
+/** A card-shaped nav link (Sharing, Admin, Crossbet, …) — split out as its
+ *  own client component just so it can play a tap sound on click, since
+ *  the pages that use it (Settings, Shared) are Server Components.
  *
  *  `icon` takes an already-rendered element (e.g. `<Users className="..." />`),
  *  not a component reference — a Server Component can pass JSX across the
  *  server/client boundary, but not a bare function/component type, which
  *  Next.js can't serialize and throws on. */
-export function SettingsNavLink({
+export function NavCardLink({
   href,
   icon,
   title,

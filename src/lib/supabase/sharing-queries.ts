@@ -34,6 +34,36 @@ export async function getIncomingShares(viewerId: string): Promise<ShareRow[]> {
   return attachProfiles(rows, "owner_id");
 }
 
+/**
+ * Everyone the user has an *accepted* sharing relationship with, in either
+ * direction — the trust boundary crossbets and the leaderboard reuse
+ * instead of inventing a new one (see crossbets' RLS insert policy).
+ */
+export async function getAcceptedConnections(
+  userId: string
+): Promise<{ id: string; email: string }[]> {
+  const supabase = await createClient();
+  const { data: rows } = await supabase
+    .from("log_access")
+    .select("owner_id, viewer_id")
+    .eq("status", "accepted")
+    .or(`owner_id.eq.${userId},viewer_id.eq.${userId}`);
+
+  const ids = [
+    ...new Set(
+      (rows ?? []).map((r) => (r.owner_id === userId ? r.viewer_id : r.owner_id))
+    ),
+  ];
+  if (ids.length === 0) return [];
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, email")
+    .in("id", ids);
+
+  return profiles ?? [];
+}
+
 async function attachProfiles(
   rows: Array<{
     id: string;

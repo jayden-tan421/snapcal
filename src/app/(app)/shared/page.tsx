@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Trophy } from "lucide-react";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { getIncomingShares, getOutgoingShares } from "@/lib/supabase/sharing-queries";
 import { InviteForm } from "@/components/app/invite-form";
 import { ShareList } from "@/components/app/share-list";
+import { NavCardLink } from "@/components/app/nav-card-link";
 
 export const metadata: Metadata = { title: "Shared — SnapCal" };
 
@@ -21,6 +23,13 @@ export default async function SharedPage() {
       <h1 className="font-display text-2xl font-semibold text-ink-strong">
         Shared
       </h1>
+
+      <NavCardLink
+        href="/crossbet"
+        icon={<Trophy className="size-5" />}
+        title="Crossbet & Leaderboard"
+        description="Challenge someone you share with, stake points"
+      />
 
       <section className="rounded-3xl bg-card p-5">
         <h2 className="font-display text-lg font-semibold text-ink-strong">

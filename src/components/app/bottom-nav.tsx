@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Camera, History, Home, Settings, Users } from "lucide-react";
+import { Camera, Dumbbell, History, Home, Settings, Users } from "lucide-react";
 import { playSound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
   { href: "/dashboard", label: "Today", icon: Home },
   { href: "/history", label: "History", icon: History },
+  { href: "/activity", label: "Activity", icon: Dumbbell },
   { href: "/shared", label: "Shared", icon: Users },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;

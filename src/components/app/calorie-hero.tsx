@@ -1,12 +1,19 @@
 export function CalorieHero({
   consumed,
   goal,
+  burned = 0,
 }: {
   consumed: number;
   goal: number;
+  /** Calories burned from today's logged activities — added on top of the
+   *  goal, same as most fitness trackers ("eat more on days you exercise"),
+   *  per the app's own netting setting. */
+  burned?: number;
 }) {
-  const remaining = Math.max(0, goal - consumed);
-  const pct = goal > 0 ? Math.min(100, Math.round((consumed / goal) * 100)) : 0;
+  const adjustedGoal = goal + burned;
+  const remaining = Math.max(0, adjustedGoal - consumed);
+  const pct =
+    adjustedGoal > 0 ? Math.min(100, Math.round((consumed / adjustedGoal) * 100)) : 0;
 
   return (
     <div className="rounded-3xl bg-element p-6 text-ink shadow-[0_10px_30px_-12px_rgba(198,68,70,0.55)]">
@@ -16,9 +23,16 @@ export function CalorieHero({
           {Math.round(consumed)}
         </span>
         {goal > 0 && (
-          <span className="text-lg font-medium text-ink/75">/ {goal} kcal</span>
+          <span className="text-lg font-medium text-ink/75">
+            / {adjustedGoal} kcal
+          </span>
         )}
       </div>
+      {burned > 0 && (
+        <p className="mt-0.5 text-xs font-medium text-ink/70">
+          {goal} goal + {Math.round(burned)} burned today
+        </p>
+      )}
 
       {goal > 0 && (
         <>

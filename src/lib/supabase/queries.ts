@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import type { MealItem } from "@/lib/supabase/types";
-import { localDayRangeIso } from "@/lib/timezone";
+import { localDayRangeIso, localDateKey } from "@/lib/timezone";
 
 export interface Meal {
   id: string;
@@ -22,6 +22,18 @@ export interface Profile {
   email: string;
   daily_calorie_goal: number;
   is_admin: boolean;
+  leaderboard_points: number;
+}
+
+export interface Activity {
+  id: string;
+  user_id: string;
+  activity_date: string;
+  activity_type: string;
+  duration_minutes: number;
+  calories_burned: number;
+  notes: string | null;
+  created_at: string;
 }
 
 export interface CurrentUser {
@@ -50,7 +62,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, email, daily_calorie_goal, is_admin")
+    .select("id, email, daily_calorie_goal, is_admin, leaderboard_points")
     .eq("id", userId)
     .single();
   return data;
@@ -90,4 +102,65 @@ export async function getMeals(
  */
 export function todayRange(timeZone: string) {
   return localDayRangeIso(new Date(), timeZone);
+}
+
+/** "YYYY-MM-DD" for today in the visitor's local timezone — see todayRange. */
+export function todayDateKey(timeZone: string): string {
+  return localDateKey(new Date(), timeZone);
+}
+
+/**
+ * "YYYY-MM-DD" for `daysAgo` days before today, in the visitor's local
+ * timezone — for windowed queries like "last 30 days of activity". A
+ * standalone helper (rather than inlining `new Date(Date.now() - ...)`
+ * inside a page component) because the impure Date call needs to live
+ * outside component-render code per the react-hooks/purity lint rule —
+ * same reason todayDateKey/todayRange are helpers and not inlined either.
+ */
+export function dateKeyDaysAgo(daysAgo: number, timeZone: string): string {
+  return localDateKey(new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000), timeZone);
+}
+
+/**
+ * Activities for a given owner within [startDateKey, endDateKey] (both
+ * inclusive — activity_date is a plain date, not a timestamp). Relies on
+ * RLS the same way getMeals does: works for the owner or an accepted
+ * viewer without any extra permission check here.
+ */
+export async function getActivities(
+  ownerId: string,
+  startDateKey: string,
+  endDateKey: string
+): Promise<Activity[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("activities")
+    .select("*")
+    .eq("user_id", ownerId)
+    .gte("activity_date", startDateKey)
+    .lte("activity_date", endDateKey)
+    .order("activity_date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getActivities failed:", error.message);
+    return [];
+  }
+  return data ?? [];
+}
+
+/** Total calories_burned logged for one specific local day. */
+export async function getBurnedCaloriesForDate(
+  ownerId: string,
+  dateKey: string
+): Promise<number> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("activities")
+    .select("calories_burned")
+    .eq("user_id", ownerId)
+    .eq("activity_date", dateKey);
+
+  if (error || !data) return 0;
+  return data.reduce((sum, row) => sum + row.calories_burned, 0);
 }

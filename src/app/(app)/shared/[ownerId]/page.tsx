@@ -3,7 +3,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { ArrowLeft } from "lucide-react";
-import { getCurrentUser, getMeals, getProfile, todayRange } from "@/lib/supabase/queries";
+import {
+  getBurnedCaloriesForDate,
+  getCurrentUser,
+  getMeals,
+  getProfile,
+  todayDateKey,
+  todayRange,
+} from "@/lib/supabase/queries";
 import { resolveTimezone } from "@/lib/timezone";
 import { CalorieHero } from "@/components/app/calorie-hero";
 import { MacroRow } from "@/components/app/macro-row";
@@ -22,14 +29,16 @@ export default async function SharedLogPage({
   const { ownerId } = await params;
   const timeZone = resolveTimezone((await cookies()).get("tz")?.value);
   const { startIso, endIso } = todayRange(timeZone);
+  const today = todayDateKey(timeZone);
 
   // RLS enforces the real permission check: getProfile/getMeals only
   // return rows for ownerId if log_access has an accepted row for this
   // viewer. A null profile here means either the owner doesn't exist or
   // access hasn't been granted (or was revoked).
-  const [profile, meals] = await Promise.all([
+  const [profile, meals, burnedCalories] = await Promise.all([
     getProfile(ownerId),
     getMeals(ownerId, startIso, endIso),
+    getBurnedCaloriesForDate(ownerId, today),
   ]);
 
   if (!profile) {
@@ -80,6 +89,7 @@ export default async function SharedLogPage({
       <CalorieHero
         consumed={totals.calories}
         goal={profile.daily_calorie_goal}
+        burned={burnedCalories}
       />
       <MacroRow
         protein_g={totals.protein_g}

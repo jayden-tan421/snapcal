@@ -5,6 +5,8 @@
 export type MealSource = "ai" | "manual";
 export type Confidence = "low" | "medium" | "high";
 export type LogAccessStatus = "pending" | "accepted" | "declined" | "revoked";
+export type CrossbetMetric = "sports_days" | "goal_days";
+export type CrossbetStatus = "pending" | "active" | "completed" | "declined";
 
 export interface MealItem {
   name: string;
@@ -24,6 +26,7 @@ export interface Database {
           email: string;
           daily_calorie_goal: number;
           is_admin: boolean;
+          leaderboard_points: number;
           created_at: string;
         };
         Insert: {
@@ -31,6 +34,7 @@ export interface Database {
           email: string;
           daily_calorie_goal?: number;
           is_admin?: boolean;
+          leaderboard_points?: number;
           created_at?: string;
         };
         Update: {
@@ -38,6 +42,7 @@ export interface Database {
           email?: string;
           daily_calorie_goal?: number;
           is_admin?: boolean;
+          leaderboard_points?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -84,6 +89,81 @@ export interface Database {
           notes?: string | null;
           source?: MealSource;
           confidence?: Confidence | null;
+        };
+        Relationships: [];
+      };
+      activities: {
+        Row: {
+          id: string;
+          user_id: string;
+          activity_date: string;
+          activity_type: string;
+          duration_minutes: number;
+          calories_burned: number;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          activity_date: string;
+          activity_type: string;
+          duration_minutes: number;
+          calories_burned?: number;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          activity_date?: string;
+          activity_type?: string;
+          duration_minutes?: number;
+          calories_burned?: number;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      crossbets: {
+        Row: {
+          id: string;
+          creator_id: string;
+          opponent_id: string;
+          metric: CrossbetMetric;
+          start_date: string;
+          end_date: string;
+          stake_points: number;
+          status: CrossbetStatus;
+          winner_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          creator_id: string;
+          opponent_id: string;
+          metric: CrossbetMetric;
+          start_date: string;
+          end_date: string;
+          stake_points: number;
+          status?: CrossbetStatus;
+          winner_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          creator_id?: string;
+          opponent_id?: string;
+          metric?: CrossbetMetric;
+          start_date?: string;
+          end_date?: string;
+          stake_points?: number;
+          status?: CrossbetStatus;
+          winner_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
