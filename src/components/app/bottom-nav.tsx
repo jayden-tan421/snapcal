@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 // moved to a Settings sub-page (it's a one-time setup thing, not a daily
 // tab) to make room for Leaderboard, which gets used a lot more often.
 const LINKS = [
-  { href: "/dashboard", label: "Today", icon: Home },
-  { href: "/history", label: "History", icon: History },
+  { href: "/dashboard", label: "Home", icon: Home },
+  { href: "/history", label: "Records", icon: History },
   { href: "/crossbet", label: "Leaderboard", icon: Trophy },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;

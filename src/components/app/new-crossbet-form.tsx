@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { Calendar, Minus, Plus, Send, Swords, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ export function NewCrossbetForm({
   connections: { id: string; email: string }[];
 }) {
   const [state, formAction, pending] = useActionState(createCrossbetAction, null);
+  const [stake, setStake] = useState(10);
 
   useEffect(() => {
     if (!state) return;
@@ -27,12 +29,19 @@ export function NewCrossbetForm({
     else if (state.error) playSound("error");
   }, [state]);
 
+  function nudgeStake(delta: number) {
+    playSound("tap");
+    setStake((s) => Math.max(1, s + delta));
+  }
+
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="flex flex-col gap-5">
       <div className="space-y-1.5">
-        <Label htmlFor="opponent_id">Challenge</Label>
+        <Label htmlFor="opponent_id" className="flex items-center gap-1.5">
+          <Swords className="size-3.5 text-element" /> Challenge
+        </Label>
         <Select name="opponent_id" defaultValue={connections[0]?.id}>
-          <SelectTrigger id="opponent_id" className="h-10 w-full bg-ink/60">
+          <SelectTrigger id="opponent_id" className="h-11 w-full bg-ink/60">
             <SelectValue placeholder="Pick someone" />
           </SelectTrigger>
           <SelectContent>
@@ -46,9 +55,11 @@ export function NewCrossbetForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="metric">On</Label>
+        <Label htmlFor="metric" className="flex items-center gap-1.5">
+          <Target className="size-3.5 text-element" /> On
+        </Label>
         <Select name="metric" defaultValue="sports_days">
-          <SelectTrigger id="metric" className="h-10 w-full bg-ink/60">
+          <SelectTrigger id="metric" className="h-11 w-full bg-ink/60">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -58,46 +69,74 @@ export function NewCrossbetForm({
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="start_date">Start</Label>
+      <div className="space-y-1.5">
+        <Label className="flex items-center gap-1.5">
+          <Calendar className="size-3.5 text-element" /> Dates
+        </Label>
+        <div className="flex items-center gap-2">
           <Input
             id="start_date"
             name="start_date"
             type="date"
             required
-            className="h-10 bg-ink/60"
+            aria-label="Start date"
+            className="h-11 flex-1 bg-ink/60"
           />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="end_date">End</Label>
+          <span className="shrink-0 text-sm font-medium text-ink-strong/40">
+            to
+          </span>
           <Input
             id="end_date"
             name="end_date"
             type="date"
             required
-            className="h-10 bg-ink/60"
+            aria-label="End date"
+            className="h-11 flex-1 bg-ink/60"
           />
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="stake_points">Stake (points)</Label>
-        <Input
-          id="stake_points"
-          name="stake_points"
-          type="number"
-          inputMode="numeric"
-          min={1}
-          defaultValue={10}
-          onFocus={(e) => e.target.select()}
-          className="h-10 max-w-32 bg-ink/60"
-        />
+      <div className="rounded-2xl bg-background/40 p-4">
+        <p className="text-center text-xs font-semibold tracking-wide text-ink-strong/50 uppercase">
+          Stake
+        </p>
+        <div className="mt-2 flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => nudgeStake(-5)}
+            aria-label="Decrease stake by 5"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ink-strong/10 text-ink-strong hover:bg-ink-strong/15"
+          >
+            <Minus className="size-4" />
+          </button>
+          <div className="flex items-baseline gap-1">
+            <input
+              id="stake_points"
+              name="stake_points"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              value={stake}
+              onChange={(e) => setStake(Math.max(1, Number(e.target.value) || 0))}
+              onFocus={(e) => e.target.select()}
+              className="w-16 bg-transparent text-center font-display text-3xl font-semibold text-ink-strong outline-none"
+            />
+            <span className="text-sm font-semibold text-ink-strong/50">pts</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => nudgeStake(5)}
+            aria-label="Increase stake by 5"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-ink-strong/10 text-ink-strong hover:bg-ink-strong/15"
+          >
+            <Plus className="size-4" />
+          </button>
+        </div>
+        <p className="mt-2 text-center text-xs font-medium text-ink-strong/45">
+          Points only — bragging rights, not real money. Winner takes the
+          stake.
+        </p>
       </div>
-      <p className="-mt-1.5 text-xs font-medium text-ink-strong/45">
-        Points only — bragging rights, not real money. Winner takes the
-        stake.
-      </p>
 
       {state?.error && (
         <p className="text-sm font-medium text-destructive">{state.error}</p>
@@ -109,8 +148,9 @@ export function NewCrossbetForm({
       <Button
         type="submit"
         disabled={pending}
-        className="h-10 w-fit rounded-full bg-element px-5 text-sm font-semibold text-ink hover:bg-element/90"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-element text-sm font-semibold text-ink shadow-[0_3px_0_0_rgba(0,0,0,0.18)] hover:bg-element/90 active:translate-y-0.5 active:shadow-[0_1px_0_0_rgba(0,0,0,0.18)]"
       >
+        <Send className="size-4" />
         {pending ? "Sending…" : "Send challenge"}
       </Button>
     </form>

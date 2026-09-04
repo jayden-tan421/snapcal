@@ -18,7 +18,7 @@ import { ActivityLogForm } from "@/components/app/activity-log-form";
 import { ActivityList } from "@/components/app/activity-list";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "History — SnapCal" };
+export const metadata: Metadata = { title: "Records — SnapCal" };
 
 export default async function HistoryPage({
   searchParams,
@@ -29,25 +29,25 @@ export default async function HistoryPage({
   if (!user) redirect("/login");
 
   const { tab: tabParam, month: monthParam, day: dayParam } = await searchParams;
-  const tab = tabParam === "activity" ? "activity" : "meals";
+  const tab = tabParam === "activity" ? "activity" : "history";
   const timeZone = resolveTimezone((await cookies()).get("tz")?.value);
 
   return (
     <div className="flex flex-col gap-5">
       <h1 className="font-display text-2xl font-semibold text-ink-strong">
-        History
+        Records
       </h1>
 
       <div className="flex gap-1 self-start rounded-full bg-card p-1">
-        <TabLink href="?tab=meals" active={tab === "meals"}>
-          Meals
+        <TabLink href="?tab=history" active={tab === "history"}>
+          History
         </TabLink>
         <TabLink href="?tab=activity" active={tab === "activity"}>
           Activity
         </TabLink>
       </div>
 
-      {tab === "meals" ? (
+      {tab === "history" ? (
         <MealsSection userId={user.id} timeZone={timeZone} />
       ) : (
         <ActivitySection

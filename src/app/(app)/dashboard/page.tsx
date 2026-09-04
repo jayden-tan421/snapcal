@@ -42,6 +42,9 @@ export default async function DashboardPage() {
 
   return (
     <div>
+      <h1 className="mb-4 font-display text-2xl font-semibold text-ink-strong">
+        Today
+      </h1>
       <CalorieHero
         consumed={totals.calories}
         goal={profile?.daily_calorie_goal ?? 2000}
