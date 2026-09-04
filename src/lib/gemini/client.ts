@@ -38,3 +38,14 @@ export function getGeminiClient() {
 // is meaningfully higher-throughput than full Flash. Being pinned (not
 // "-latest") means it won't silently change again — bump it deliberately.
 export const GEMINI_MODEL = "gemini-3.5-flash-lite";
+
+// Even a pinned model can have a genuine outage on Google's side — verified
+// live: gemini-3.5-flash-lite returned 503 "high demand" on 6/6 direct API
+// calls in a row (not our quota; Google's own capacity), while
+// gemini-flash-latest responded fine at the same moment. Used ONLY as a
+// fallback when the primary model specifically fails with an overload
+// error (see isOverloadedError in api/analyze/route.ts) — never as the
+// default — so the "floating alias silently drifts to an overloaded
+// brand-new model" risk that got us off "-latest" in the first place stays
+// limited to the rare moment the pinned primary is already down anyway.
+export const GEMINI_FALLBACK_MODEL = "gemini-flash-latest";
