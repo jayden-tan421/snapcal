@@ -101,13 +101,18 @@ function playNotes(notes: Note[]) {
   }
 }
 
-export type SoundEffect = "success" | "error" | "delete";
+export type SoundEffect = "success" | "error" | "delete" | "tap";
 
 /** Plays a short synthesized UI sound, unless the user has muted sound effects. */
 export function playSound(effect: SoundEffect): void {
   if (!isSoundEnabled()) return;
 
   switch (effect) {
+    case "tap":
+      // Tiny, quiet pop for frequent low-stakes taps (nav tabs) — quieter
+      // and shorter than "success" so it reads as a texture, not an event.
+      playNotes([{ freq: 660, start: 0, duration: 0.055, gain: 0.05 }]);
+      break;
     case "success":
       // Cheerful two-note rise — meal logged, goal saved, invite sent.
       playNotes([

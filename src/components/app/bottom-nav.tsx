@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Camera, History, Home, Settings, Users } from "lucide-react";
+import { playSound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
@@ -24,7 +25,10 @@ export function BottomNav({ onLog }: { onLog: () => void }) {
 
         <button
           type="button"
-          onClick={onLog}
+          onClick={() => {
+            playSound("tap");
+            onLog();
+          }}
           className="-mt-8 flex size-16 shrink-0 items-center justify-center rounded-full bg-element text-ink shadow-[0_4px_0_0_rgba(0,0,0,0.2)] active:translate-y-0.5"
           aria-label="Log a meal"
         >
@@ -53,6 +57,7 @@ function NavLink({
   return (
     <Link
       href={href}
+      onClick={() => playSound("tap")}
       className={cn(
         "flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors",
         active ? "text-element" : "text-ink-strong/55 hover:text-ink-strong"
