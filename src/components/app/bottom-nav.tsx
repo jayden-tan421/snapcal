@@ -19,10 +19,17 @@ export function BottomNav({ onLog }: { onLog: () => void }) {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-ink-strong/10 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm">
-      <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-2">
-        {LINKS.slice(0, 2).map((link) => (
-          <NavLink key={link.href} {...link} active={pathname === link.href} />
-        ))}
+      <div className="mx-auto flex max-w-lg items-center px-2 py-2">
+        {/* Each side gets equal flex-1 width regardless of how many icons
+            it holds, so the center button stays centered even with an
+            uneven 2/3 split (justify-between on one flat row would instead
+            pull the button toward whichever side has fewer, narrower
+            items). */}
+        <div className="flex flex-1 items-center justify-around">
+          {LINKS.slice(0, 2).map((link) => (
+            <NavLink key={link.href} {...link} active={pathname === link.href} />
+          ))}
+        </div>
 
         <button
           type="button"
@@ -36,9 +43,11 @@ export function BottomNav({ onLog }: { onLog: () => void }) {
           <Camera className="size-6" />
         </button>
 
-        {LINKS.slice(2).map((link) => (
-          <NavLink key={link.href} {...link} active={pathname === link.href} />
-        ))}
+        <div className="flex flex-1 items-center justify-around">
+          {LINKS.slice(2).map((link) => (
+            <NavLink key={link.href} {...link} active={pathname === link.href} />
+          ))}
+        </div>
       </div>
     </nav>
   );

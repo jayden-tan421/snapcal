@@ -60,11 +60,22 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("id, email, daily_calorie_goal, is_admin, leaderboard_points")
     .eq("id", userId)
     .single();
+
+  // This used to swallow the error entirely, which silently degraded every
+  // profile-dependent page (Settings' displayed goal, the dashboard's goal,
+  // the admin/leaderboard checks) to hardcoded fallbacks with zero signal
+  // as to why — e.g. a schema migration not yet applied made saving a goal
+  // look broken when it was actually the *read* silently failing. Logging
+  // at least makes that diagnosable from Vercel's function logs.
+  if (error) {
+    console.error("getProfile failed:", error.message);
+    return null;
+  }
   return data;
 }
 
