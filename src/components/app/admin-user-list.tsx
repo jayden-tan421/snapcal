@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Search, ShieldCheck, ShieldOff, Trash2, X } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -41,6 +41,13 @@ export function AdminUserList({
   const [isPending, startTransition] = useTransition();
   const [deleteTarget, setDeleteTarget] = useState<AdminUserRow | null>(null);
   const [confirmText, setConfirmText] = useState("");
+  const [query, setQuery] = useState("");
+
+  const filteredUsers = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter((u) => u.email.toLowerCase().includes(q));
+  }, [users, query]);
 
   function closeDeleteDialog() {
     setDeleteTarget(null);
@@ -79,8 +86,42 @@ export function AdminUserList({
 
   return (
     <>
+      <div className="relative mb-3">
+        <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-strong/40" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by email…"
+          aria-label="Search users by email"
+          className="h-10 w-full rounded-full bg-ink/60 pr-9 pl-10 text-sm text-ink-strong outline-none placeholder:text-ink-strong/40 focus-visible:ring-3 focus-visible:ring-ring/50"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Clear search"
+            className="absolute top-1/2 right-2.5 flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-ink-strong/40 hover:bg-ink-strong/10 hover:text-ink-strong"
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+      </div>
+
+      {query && (
+        <p className="mb-2 text-xs font-medium text-ink-strong/45">
+          {filteredUsers.length} of {users.length} user
+          {users.length === 1 ? "" : "s"}
+        </p>
+      )}
+
+      {filteredUsers.length === 0 ? (
+        <p className="text-sm font-medium text-ink-strong/50">
+          No users match &quot;{query}&quot;.
+        </p>
+      ) : (
       <ul className="flex flex-col gap-2">
-        {users.map((userRow) => (
+        {filteredUsers.map((userRow) => (
           <li
             key={userRow.id}
             className="flex items-center gap-3 rounded-2xl bg-card px-4 py-3"
@@ -131,6 +172,7 @@ export function AdminUserList({
           </li>
         ))}
       </ul>
+      )}
 
       <Dialog
         open={deleteTarget !== null}
