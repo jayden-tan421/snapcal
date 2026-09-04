@@ -15,7 +15,18 @@ import { logActivityAction } from "@/lib/actions/activities";
 import { ACTIVITY_TYPES, estimateCaloriesBurned } from "@/lib/activity-types";
 import { playSound } from "@/lib/sound";
 
-export function ActivityLogForm({ defaultDate }: { defaultDate: string }) {
+/**
+ * The date is fixed to whichever calendar day the user tapped (passed in
+ * as `date`, not editable here) — the calendar itself is how you pick the
+ * day, rather than a separate free-text date field duplicating that job.
+ */
+export function ActivityLogForm({
+  date,
+  dateLabel,
+}: {
+  date: string;
+  dateLabel: string;
+}) {
   const [state, formAction, pending] = useActionState(logActivityAction, null);
   const [activityType, setActivityType] = useState(ACTIVITY_TYPES[0].value);
   const [duration, setDuration] = useState(30);
@@ -41,19 +52,11 @@ export function ActivityLogForm({ defaultDate }: { defaultDate: string }) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
-      <div className="space-y-1.5">
-        <Label htmlFor="activity_date">Date</Label>
-        <Input
-          id="activity_date"
-          name="activity_date"
-          type="date"
-          defaultValue={defaultDate}
-          max={defaultDate}
-          required
-          className="h-10 bg-ink/60"
-        />
-      </div>
+    <form key={date} action={formAction} className="flex flex-col gap-3">
+      <input type="hidden" name="activity_date" value={date} />
+      <p className="text-sm font-medium text-ink-strong/60">
+        Logging for <span className="font-semibold text-ink-strong">{dateLabel}</span>
+      </p>
 
       <div className="space-y-1.5">
         <Label htmlFor="activity_type">Activity</Label>
@@ -111,6 +114,9 @@ export function ActivityLogForm({ defaultDate }: { defaultDate: string }) {
 
       {state?.error && (
         <p className="text-sm font-medium text-destructive">{state.error}</p>
+      )}
+      {state?.success && (
+        <p className="text-sm font-medium text-element">Logged.</p>
       )}
 
       <Button

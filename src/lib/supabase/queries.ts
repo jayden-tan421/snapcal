@@ -132,6 +132,12 @@ export function dateKeyDaysAgo(daysAgo: number, timeZone: string): string {
   return localDateKey(new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000), timeZone);
 }
 
+/** "YYYY-MM" for the current month in the visitor's local timezone — the
+ * activity calendar's default month when none is picked via ?month=. */
+export function currentMonthKey(timeZone: string): string {
+  return todayDateKey(timeZone).slice(0, 7);
+}
+
 /**
  * Activities for a given owner within [startDateKey, endDateKey] (both
  * inclusive — activity_date is a plain date, not a timestamp). Relies on

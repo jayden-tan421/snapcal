@@ -46,7 +46,7 @@ export async function logActivityAction(
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard");
-  revalidatePath("/activity");
+  revalidatePath("/history");
   return { success: true };
 }
 
@@ -66,6 +66,6 @@ export async function deleteActivityAction(activityId: string) {
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard");
-  revalidatePath("/activity");
+  revalidatePath("/history");
   return { success: true as const };
 }

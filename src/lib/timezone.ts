@@ -51,6 +51,15 @@ export function startOfLocalDay(date: Date, timeZone: string): Date {
   return new Date(Date.UTC(y, m - 1, d, 0, 0, 0) - offsetMin * 60_000);
 }
 
+/** Human-readable label for a "YYYY-MM-DD" date key, e.g. "Monday, Sep 4". */
+export function formatDateKeyLabel(dateKey: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(`${dateKey}T00:00:00`));
+}
+
 /** [startIso, endIso) covering the local calendar day containing `date`. */
 export function localDayRangeIso(date: Date, timeZone: string) {
   const start = startOfLocalDay(date, timeZone);
