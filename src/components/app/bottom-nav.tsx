@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Camera, History, Home, Settings, Users } from "lucide-react";
+import { Camera, History, Home, Settings, Trophy } from "lucide-react";
 import { playSound } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
-// Kept at exactly 4 (+ the center log button = 5 total icons) — Activity
-// logging lives inside History's "Activity" tab instead of its own tab, so
-// the nav doesn't keep growing every time a new feature gets added.
+// Kept at exactly 4 (+ the center log button = 5 total icons). Sharing
+// moved to a Settings sub-page (it's a one-time setup thing, not a daily
+// tab) to make room for Leaderboard, which gets used a lot more often.
 const LINKS = [
   { href: "/dashboard", label: "Today", icon: Home },
   { href: "/history", label: "History", icon: History },
-  { href: "/shared", label: "Shared", icon: Users },
+  { href: "/crossbet", label: "Leaderboard", icon: Trophy },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 

@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Trophy } from "lucide-react";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { getIncomingShares, getOutgoingShares } from "@/lib/supabase/sharing-queries";
 import { InviteForm } from "@/components/app/invite-form";
 import { ShareList } from "@/components/app/share-list";
-import { NavCardLink } from "@/components/app/nav-card-link";
 
-export const metadata: Metadata = { title: "Shared — SnapCal" };
+export const metadata: Metadata = { title: "Sharing — SnapCal" };
 
 export default async function SharedPage() {
   const user = await getCurrentUser();
@@ -20,16 +18,15 @@ export default async function SharedPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-2xl font-semibold text-ink-strong">
-        Shared
-      </h1>
-
-      <NavCardLink
-        href="/crossbet"
-        icon={<Trophy className="size-5" />}
-        title="Crossbet & Leaderboard"
-        description="Challenge someone you share with, stake points"
-      />
+      <div>
+        <h1 className="font-display text-2xl font-semibold text-ink-strong">
+          Sharing
+        </h1>
+        <p className="mt-1 text-sm font-medium text-ink-strong/60">
+          Once someone accepts, you&apos;ll both show up as options on each
+          other&apos;s Leaderboard tab too.
+        </p>
+      </div>
 
       <section className="rounded-3xl bg-card p-5">
         <h2 className="font-display text-lg font-semibold text-ink-strong">
