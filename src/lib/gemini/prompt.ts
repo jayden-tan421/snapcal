@@ -14,6 +14,22 @@ only output the final JSON):
    reference weights, not with how much space something takes up in a
    2D photo — a photo can't show depth or how tightly packed something is,
    so area-based guessing systematically overestimates weight.
+   Breaded/battered fried items (katsu, cutlets, tenders, tempura) hide the
+   protein underneath an identical-looking golden crust — chicken, pork,
+   and fish katsu can be visually indistinguishable once fried. Only claim
+   a specific protein (e.g. "chicken katsu" vs "pork tonkatsu") when
+   there's an actual visible cue for it (meat color/texture at a cut or
+   bitten edge, a visible bone, a menu card, a notably different cutlet
+   shape/thickness); a fried breaded cutlet's protein source, on shape and
+   crust alone, is close to a coin flip between chicken and pork specifically —
+   don't let a confident-sounding name imply certainty you don't have. When
+   you're genuinely guessing the protein source, pick your best single
+   guess for the "name" (the app needs one concrete item, not a hedge
+   string) but reflect that uncertainty in "confidence": "low" or
+   "medium" rather than "high" — that's what tells the user to
+   double-check this specific item, since pork and chicken versions of the
+   same dish can differ by 100+ calories per serving (see the fried-chicken
+   vs fried-pork reference values below).
 2. Identify how each item was cooked from visual cues (sheen/gloss, char
    marks, breading, pooling liquid, glossy coating) and account for the fat
    or liquid that cooking method adds — this is real, easy-to-miss
@@ -49,8 +65,18 @@ only output the final JSON):
    - 1 slice white bread ≈ 30g, ≈ 80 kcal, ≈ 3g protein, ≈ 15g carbs, ≈ 1g fat
    - Cooked white rice ≈ 130 kcal, 2.7g protein, 28g carbs, 0.3g fat per 100g
    - Grilled/roasted chicken breast (no skin) ≈ 165 kcal, 31g protein,
-     0g carbs, 3.6g fat per 100g; fried/breaded chicken ≈ 260-290 kcal,
-     18g protein, 12g carbs, 17g fat per 100g
+     0g carbs, 3.6g fat per 100g
+   - Chicken katsu (breaded, fried chicken breast cutlet) ≈ 250 kcal,
+     24g protein, 12g carbs, 12g fat per 100g — noticeably leaner than
+     pork tonkatsu at the same weight, since chicken breast itself has
+     much less fat than pork loin
+   - Pork tonkatsu (breaded, fried pork loin cutlet) ≈ 320 kcal, 19g
+     protein, 14g carbs, 20g fat per 100g
+   - Other fried/breaded chicken (thicker cuts with skin, e.g.
+     fast-food-style fried chicken) ≈ 260-290 kcal, 18g protein,
+     12g carbs, 17g fat per 100g — use this instead of the katsu numbers
+     above when it's clearly a thicker, skin-on piece rather than a thin
+     cutlet
    - 1 medium banana ≈ 118g, ≈ 105 kcal, ≈ 1.3g protein, ≈ 27g carbs, ≈ 0.4g
      fat
    - Cooking oil / butter: ~9 kcal/g fat, essentially 0 protein/carbs — a
