@@ -35,8 +35,13 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   email text not null,
   daily_calorie_goal integer not null default 2000,
+  is_admin boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- Migrating an existing database that predates is_admin (create table above
+-- is a no-op once the table exists, so this is what actually adds it there).
+alter table public.profiles add column if not exists is_admin boolean not null default false;
 
 alter table public.profiles enable row level security;
 
@@ -65,6 +70,32 @@ drop policy if exists "profiles: insert own" on public.profiles;
 create policy "profiles: insert own"
   on public.profiles for insert
   with check (id = auth.uid());
+
+-- The "update own" policy above is row-level only — RLS has no concept of
+-- "this column but not that one", so without this trigger a signed-in user
+-- could PATCH their own profile row directly via the Supabase REST API
+-- (bypassing the app's UI entirely, which never exposes this) and flip
+-- is_admin to true themselves. Block any change to is_admin unless it comes
+-- from the service-role key (admin.auth.admin.* calls, or an admin server
+-- action using createAdminClient()) — the same kind of privilege-escalation
+-- gap that was closed for log_access above.
+create or replace function public.lock_profiles_admin_flag()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.is_admin is distinct from old.is_admin
+     and coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'is_admin can only be changed by an administrator';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_lock_admin_flag on public.profiles;
+create trigger profiles_lock_admin_flag
+  before update on public.profiles
+  for each row execute function public.lock_profiles_admin_flag();
 
 -- Auto-create a profile row whenever a new auth user signs up.
 create or replace function public.handle_new_user()

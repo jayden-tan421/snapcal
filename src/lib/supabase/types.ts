@@ -23,18 +23,21 @@ export interface Database {
           id: string;
           email: string;
           daily_calorie_goal: number;
+          is_admin: boolean;
           created_at: string;
         };
         Insert: {
           id: string;
           email: string;
           daily_calorie_goal?: number;
+          is_admin?: boolean;
           created_at?: string;
         };
         Update: {
           id?: string;
           email?: string;
           daily_calorie_goal?: number;
+          is_admin?: boolean;
           created_at?: string;
         };
         Relationships: [];

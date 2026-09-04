@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Users } from "lucide-react";
+import { ShieldCheck, Users } from "lucide-react";
 import { getCurrentUser, getProfile } from "@/lib/supabase/queries";
 import { GoalForm } from "@/components/app/goal-form";
 import { DeleteAccountDialog } from "@/components/app/delete-account-dialog";
@@ -56,6 +56,25 @@ export default async function SettingsPage() {
           </span>
         </span>
       </Link>
+
+      {profile?.is_admin && (
+        <Link
+          href="/admin"
+          className="flex items-center gap-3 rounded-3xl bg-card p-5"
+        >
+          <span className="flex size-10 items-center justify-center rounded-full bg-element/10 text-element">
+            <ShieldCheck className="size-5" />
+          </span>
+          <span>
+            <span className="block font-display text-base font-semibold text-ink-strong">
+              Admin
+            </span>
+            <span className="block text-sm font-medium text-ink-strong/60">
+              Manage or delete user accounts
+            </span>
+          </span>
+        </Link>
+      )}
 
       <SoundToggle />
 

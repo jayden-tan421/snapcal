@@ -21,6 +21,7 @@ export interface Profile {
   id: string;
   email: string;
   daily_calorie_goal: number;
+  is_admin: boolean;
 }
 
 export interface CurrentUser {
@@ -49,7 +50,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, email, daily_calorie_goal")
+    .select("id, email, daily_calorie_goal, is_admin")
     .eq("id", userId)
     .single();
   return data;
