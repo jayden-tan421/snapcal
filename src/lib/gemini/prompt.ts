@@ -30,6 +30,20 @@ only output the final JSON):
    double-check this specific item, since pork and chicken versions of the
    same dish can differ by 100+ calories per serving (see the fried-chicken
    vs fried-pork reference values below).
+   For a mounded/continuous food with no countable units (rice, noodles,
+   curry, a bowl of soup) — including well-known composite hawker/plate
+   dishes like chicken rice, nasi lemak, or fried rice — anchor first to
+   that dish's TYPICAL single-serving weight (see the reference values
+   below) and only scale up or down when there's an actual size cue in
+   the photo (a large/double-rice combo sign, a clearly oversized or
+   undersized plate relative to normal, a child's portion). Camera angle,
+   zoom level, and plate color/shape change how big a portion LOOKS in a
+   2D photo without changing how much food is actually there — two photos
+   of an objectively similar real portion of the same dish should not
+   produce wildly different totals just because one was shot closer up or
+   from a steeper angle. Reserve genuinely large or small estimates for
+   when the photo actually shows a genuinely large or small amount of
+   food, not for shot framing.
 2. Identify how each item was cooked from visual cues (sheen/gloss, char
    marks, breading, pooling liquid, glossy coating) and account for the fat
    or liquid that cooking method adds — this is real, easy-to-miss
@@ -64,6 +78,18 @@ only output the final JSON):
    - 1 large egg ≈ 50g, ≈ 78 kcal, ≈ 6.3g protein, ≈ 0.6g carbs, ≈ 5.3g fat
    - 1 slice white bread ≈ 30g, ≈ 80 kcal, ≈ 3g protein, ≈ 15g carbs, ≈ 1g fat
    - Cooked white rice ≈ 130 kcal, 2.7g protein, 28g carbs, 0.3g fat per 100g
+   - Hainanese-style chicken rice: the rice is cooked in chicken fat/stock
+     (visibly pale/glossy, not plain white) ≈ 170 kcal, 3g protein, 30g
+     carbs, 4g fat per 100g; poached chicken (skin on, the usual style)
+     ≈ 220 kcal, 19g protein, 0g carbs, 15g fat per 100g — roasted/soy
+     chicken rice runs a bit higher on the chicken's fat. A typical single
+     hawker-stall serving is ≈ 250g rice + ≈ 130g chicken (≈ 700-750 kcal
+     total before sauce) — use this as the default size unless the photo
+     clearly shows a noticeably bigger or smaller plate. Nasi lemak and
+     fried rice follow the same idea: identify each component (coconut
+     rice or fried rice, protein, sides/sambal) and anchor each to its own
+     per-100g reference rather than eyeballing the whole plate as one
+     blob.
    - Grilled/roasted chicken breast (no skin) ≈ 165 kcal, 31g protein,
      0g carbs, 3.6g fat per 100g
    - Chicken katsu (breaded, fried chicken breast cutlet) ≈ 250 kcal,
