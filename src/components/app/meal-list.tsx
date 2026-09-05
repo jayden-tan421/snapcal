@@ -11,6 +11,7 @@ export function MealList({
   meals,
   readOnly = false,
   timeZone = "UTC",
+  emptyMessage = "Nothing logged yet today.",
 }: {
   meals: Meal[];
   readOnly?: boolean;
@@ -24,6 +25,7 @@ export function MealList({
    * mismatch (and visibly wrong times) for any non-UTC visitor.
    */
   timeZone?: string;
+  emptyMessage?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -43,7 +45,7 @@ export function MealList({
     return (
       <div className="mt-6 rounded-2xl border border-dashed border-ink-strong/20 px-4 py-8 text-center">
         <p className="text-sm font-medium text-ink-strong/60">
-          Nothing logged yet today.
+          {emptyMessage}
         </p>
       </div>
     );

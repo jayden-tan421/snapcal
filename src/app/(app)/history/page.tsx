@@ -11,7 +11,7 @@ import {
   todayDateKey,
 } from "@/lib/supabase/queries";
 import { groupMealsByDay } from "@/lib/aggregate";
-import { resolveTimezone, formatDateKeyLabel } from "@/lib/timezone";
+import { resolveTimezone, formatDateKeyLabel, localDateKey } from "@/lib/timezone";
 import { CalorieChart } from "@/components/app/calorie-chart";
 import { ActivityCalendar } from "@/components/app/activity-calendar";
 import { ActivityLogForm } from "@/components/app/activity-log-form";
@@ -109,12 +109,28 @@ async function MealsSection({
     week.reduce((sum, d) => sum + d.calories, 0) / week.length
   );
 
+  // Grouped by local date key so tapping a bar in the chart can show
+  // exactly which meals (and how many items) made up that day's total,
+  // without a second fetch — every meal in the visible range is already
+  // loaded above.
+  const mealsByDate: Record<string, typeof meals> = {};
+  for (const meal of meals) {
+    const key = localDateKey(new Date(meal.created_at), timeZone);
+    (mealsByDate[key] ??= []).push(meal);
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm font-medium text-ink-strong/60">
         7-day average: {avgWeek} kcal/day
       </p>
-      <CalorieChart week={week} month={month} goal={goal} />
+      <CalorieChart
+        week={week}
+        month={month}
+        goal={goal}
+        mealsByDate={mealsByDate}
+        timeZone={timeZone}
+      />
     </div>
   );
 }
